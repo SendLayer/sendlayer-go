@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sendlayer/sendlayer-go/sendlayer"
+	"github.com/sendlayer/sendlayer-go"
 )
 
 func TestSendEmailValidation(t *testing.T) {

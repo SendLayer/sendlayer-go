@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sendlayer/sendlayer-go/sendlayer"
+	"github.com/sendlayer/sendlayer-go"
 )
 
 func TestEventsValidation(t *testing.T) {

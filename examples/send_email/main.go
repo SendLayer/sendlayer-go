@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sendlayer/sendlayer-go/sendlayer"
+	"github.com/sendlayer/sendlayer-go"
 )
 
 func main() {
@@ -22,17 +22,22 @@ func main() {
 	}
 
 	// Example: Send a simple text email
-	// resp, err := sl.Emails.Send(
-	// 	"paulie@example.com",
-	// 	[]string{"recipient@example.com"},
-	// 	"Sending a Test Email With Go SDK", 
-	// 	"This is a test email sent using the SendLayer Go SDK",
-	// 	"",
-	// 	nil, nil, nil, nil, nil, nil,
-	// )
+	resp, err := sl.Emails.Send(
+		"paulie@ndmediadesigns.com",
+		[]string{"dozokoye@am.co"},
+		"Sending a Test Email With Go SDK", 
+		"This is a test email sent using the SendLayer Go SDK",
+		"",
+		nil, nil, nil, nil, nil, nil,
+	)
+	if err != nil {
+		fmt.Printf("Error sending email: %v\n", err)
+		return
+	}
+	fmt.Printf("✅ Email sent successfully! Message ID: %s\n", resp.MessageID)
 
 	// Example: Send an email with all options
-	resp, err := sl.Emails.Send(
+	response, err := sl.Emails.Send(
 		sendlayer.EmailAddress{Email: "paulie@example.com", Name: "Paulie Paloma"},   // sender
 		[]string{"recipient1@example.com", "recipient2@example.com"},                          // to
 		"Subject with all options",                                              // subject
@@ -49,5 +54,5 @@ func main() {
 		fmt.Printf("Error sending email: %v\n", err)
 		return
 	}
-	fmt.Printf("✅ Email sent successfully! Message ID: %s\n", resp.MessageID)
+	fmt.Printf("✅ Complex Email sent successfully! Message ID: %s\n", response.MessageID)
 }

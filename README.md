@@ -1,21 +1,21 @@
-# SendLayer Go SDK
+<a href="https://sendlayer.com">
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="https://sendlayer.com/wp-content/themes/sendlayer-theme/assets/images/svg/logo-dark.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://sendlayer.com/wp-content/themes/sendlayer-theme/assets/images/svg/logo-light.svg">
+  <img alt="SendLayer Logo" width="200px" src="https://sendlayer.com/wp-content/themes/sendlayer-theme/assets/images/svg/logo-light.svg">
+</picture>
+</a>
 
-Official Go SDK for SendLayer API — a powerful transactional email delivery service.
+### SendLayer Go SDK
 
-## Features
+The official Go SDK for interacting with the SendLayer API, providing a simple and intuitive interface for sending emails, managing webhooks, and retrieving email events.
 
-
-- **Send transactional emails**: HTML, text, attachments, CC/BCC, reply-to, custom headers, tags
-- **Manage webhooks**: Create, list, and delete webhooks
-- **Retrieve email events**: With filters (date range, event type, message ID, pagination)
-- **Comprehensive error handling**: API, validation, authentication, rate limit, and internal server errors
-- **Idiomatic Go design**: Strong typing, proper error handling, and Go conventions
-- **Full feature parity**: Matches Python and Node.js SDKs
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 ## Installation
 
 ```bash
-go get github.com/sendlayer/sendlayer-go/sendlayer
+go get github.com/sendlayer/sendlayer-go
 ```
 
 ## Quick Start
@@ -24,225 +24,143 @@ go get github.com/sendlayer/sendlayer-go/sendlayer
 package main
 
 import (
-    "fmt"
-    "log"
-    "os"
-    "time"
-    
-    "github.com/sendlayer/sendlayer-go/sendlayer"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/sendlayer/sendlayer-go"
 )
 
 func main() {
-    // Initialize the SDK
-    apiKey := os.Getenv("SENDLAYER_API_KEY")
-    if apiKey == "" {
-        log.Fatal("SENDLAYER_API_KEY environment variable is required")
-    }
-    
-    sendlayer := sendlayer.New(apiKey)
-    
-    // Send an email
-    resp, err := sendlayer.Emails.Send(
-        "sender@example.com",
-        []string{"recipient@example.com"},
-        "Welcome to SendLayer!",
-        "This is a plain text email",
-        "<h1>Welcome to SendLayer!</h1><p>This is an HTML email</p>",
-        nil, nil, nil, nil, nil, nil,
-    )
-    if err != nil {
-        log.Fatalf("Failed to send email: %v", err)
-    }
-    
-    fmt.Printf("Email sent successfully! Message ID: %s\n", resp.MessageID)
-    
-    // Create a webhook
-    webhook, err := sendlayer.Webhooks.Create(
-        "https://your-domain.com/webhook",
-        "delivered",
-    )
-    if err != nil {
-        log.Fatalf("Failed to create webhook: %v", err)
-    }
-    
-    fmt.Printf("Webhook created! ID: %d\n", webhook.WebhookID)
-    
-    // Get events
-    events, err := sendlayer.Events.Get(
-        &time.Now().AddDate(0, 0, -7), // 7 days ago
-        &time.Now(),                   // today
-        nil, nil, nil, nil,
-    )
-    if err != nil {
-        log.Fatalf("Failed to get events: %v", err)
-    }
-    
-    fmt.Printf("Found %d events\n", events.TotalRecords)
+	sl := sendlayer.New(os.Getenv("SENDLAYER_API_KEY"))
+
+	resp, err := sl.Emails.Send(
+		"paulie@example.com",
+		"recipient@example.com",
+		"Test Email",
+		"This is a test email",
+		"",
+		nil, nil, nil,
+		nil, nil, nil,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Email sent! Message ID:", resp.MessageID)
 }
 ```
 
-## API Reference
+## Features
 
-### Root Struct
+- **Email Module**: Send emails with HTML/text content, attachments, CC/BCC, reply-to, custom headers, and tags
+- **Webhooks Module**: Create, retrieve, and delete webhooks for various email events
+- **Events Module**: Retrieve email events with filtering options
+- **Error Handling**: Clear, typed errors for API and validation issues
+
+## Email
+
+Send emails using the `SendLayer` client:
 
 ```go
-type SendLayer struct {
-    Client   *Client
-    Emails   *EmailsService
-    Webhooks *WebhooksService
-    Events   *EventsService
+sl := sendlayer.New("your-api-key")
+
+resp, err := sl.Emails.Send(
+	from: sendlayer.EmailAddress{Email: "paulie@example.com", Name: "Paulie Paloma"},
+	to: []sendlayer.EmailAddress{
+		{Email: "recipient1@example.com", Name: "Recipient 1"},
+		{Email: "recipient2@example.com", Name: "Recipient 2"},
+	},
+	subject: "Complex Email",
+	text: "Plain text fallback",
+	html: "<p>This is a <strong>test email</strong>!</p>",
+	cc: []sendlayer.EmailAddress{{Email: "cc@example.com", Name: "CC"}},
+	bcc: []sendlayer.EmailAddress{{Email: "bcc@example.com", Name: "BCC"}},
+	replyTo: []sendlayer.EmailAddress{{Email: "reply@example.com", Name: "Reply"}},
+	attachments: []sendlayer.Attachment{{Path: "path/to/file.pdf", Type: "application/pdf"}},
+	headers: map[string]string{"X-Custom-Header": "value"},
+	tags: []string{"tag1", "tag2"},
+)
+if err != nil {
+	log.Fatal(err)
 }
 ```
 
-### EmailsService
+## Events
 
 ```go
-// Send an email with flexible recipient formats
-func (e *EmailsService) Send(
-    from interface{},           // string, []string, EmailAddress, or []EmailAddress
-    to interface{},             // string, []string, EmailAddress, or []EmailAddress
-    subject string,
-    text string,                // plain text content
-    html string,                // HTML content
-    cc interface{},             // optional CC recipients
-    bcc interface{},            // optional BCC recipients
-    replyTo interface{},        // optional reply-to addresses
-    attachments []Attachment,   // optional attachments
-    headers map[string]string,  // optional custom headers
-    tags []string,              // optional tags
-) (*EmailResponse, error)
+sl := sendlayer.New("your-api-key")
+
+// Get all events
+all, err := sl.Events.Get(nil, nil, "", "", nil, nil)
+if err != nil {
+	log.Fatal(err)
+}
+
+// Get filtered events (last 24h, opened)
+end := time.Now()
+start := end.Add(-24 * time.Hour)
+ev := "opened"
+filtered, err := sl.Events.Get(&start, &end, ev, "", nil, nil)
+if err != nil {
+	log.Fatal(err)
+}
+
+fmt.Println("All events count:", all.TotalRecords)
+fmt.Println("Filtered events count:", filtered.TotalRecords)
 ```
 
-**Recipient Formats:**
-- `"user@example.com"` - single email string
-- `[]string{"user1@example.com", "user2@example.com"}` - multiple emails
-- `EmailAddress{Email: "user@example.com", Name: "User Name"}` - with display name
-- `[]EmailAddress{...}` - multiple with display names
-
-**Attachment Support:**
-- Local files: `Attachment{Path: "/path/to/file.pdf", Type: "application/pdf"}`
-- Remote files: `Attachment{Path: "https://example.com/file.pdf", Type: "application/pdf"}`
-
-### WebhooksService
+## Webhooks
 
 ```go
+sl := sendlayer.New("your-api-key")
+
 // Create a webhook
-func (w *WebhooksService) Create(url string, event string) (*Webhook, error)
+webhook, err := sl.Webhooks.Create("https://your-domain.com/webhook", "open")
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println("Webhook created:", webhook.WebhookID)
 
-// List all webhooks
-func (w *WebhooksService) Get() ([]Webhook, error)
+// Get all webhooks
+webhooks, err := sl.Webhooks.Get()
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println("Webhooks:", webhooks)
 
 // Delete a webhook
-func (w *WebhooksService) Delete(webhookID int) error
-```
-
-**Supported Event Types:**
-- `"delivered"`, `"bounced"`, `"opened"`, `"clicked"`, `"unsubscribed"`, `"spam"`
-
-### EventsService
-
-```go
-// Get email events with optional filters
-func (e *EventsService) Get(
-    startDate *time.Time,       // optional start date
-    endDate *time.Time,         // optional end date
-    event *string,              // optional event type filter
-    messageID *string,          // optional message ID filter
-    startFrom *int,             // optional pagination offset
-    retrieveCount *int,         // optional pagination limit
-) (*EventsResponse, error)
-```
-
-### Custom Types
-
-The SDK includes custom types for better API compatibility:
-
-```go
-// UnixTime handles Unix timestamps from the API
-type UnixTime struct {
-    time.Time
+if err := sl.Webhooks.Delete(123); err != nil {
+	log.Fatal(err)
 }
-
-// Custom JSON marshaling/unmarshaling for Unix timestamps
-func (ut *UnixTime) UnmarshalJSON(data []byte) error
-func (ut UnixTime) MarshalJSON() ([]byte, error)
 ```
 
-### Error Types
+## Error Handling
 
-The SDK provides comprehensive error handling with specific error types:
+The SDK returns typed errors to help you handle different scenarios:
 
 ```go
-// Base error type
-type SendLayerError struct {
-    Message string
+resp, err := sl.Emails.Send(/* ... */)
+if err != nil {
+	var apiErr *sendlayer.SendLayerAPIError
+	var valErr *sendlayer.SendLayerValidationError
+	if errors.As(err, &apiErr) {
+		fmt.Println("API error:", apiErr.Message, apiErr.StatusCode)
+		return
+	}
+	if errors.As(err, &valErr) {
+		fmt.Println("Validation error:", valErr.Error())
+		return
+	}
+	fmt.Println("Unexpected error:", err)
+	return
 }
-
-// API-specific errors
-type SendLayerAPIError struct {
-    Message    string
-    StatusCode int
-    Response   []byte
-}
-
-// Specific error types
-type SendLayerAuthenticationError struct{ SendLayerError }
-type SendLayerValidationError struct{ SendLayerError }
-type SendLayerNotFoundError struct{ SendLayerError }
-type SendLayerRateLimitError struct{ SendLayerError }
-type SendLayerInternalServerError struct{ SendLayerError }
 ```
 
-## Examples
+## More Details
 
-See the `examples/` directory for complete working examples:
-
-- `send_email/main.go` - Send emails with various options
-- `webhooks/main.go` - Manage webhooks
-- `events/main.go` - Retrieve and filter events
-
-## Testing
-
-Run the test suite:
-
-```bash
-# Run all tests
-go test ./...
-
-# Run with coverage
-go test -cover ./...
-
-# Run specific test
-go test -v -run TestEmailSend
-```
-
-## Configuration
-
-The SDK supports configuration options:
-
-```go
-sendlayer := sendlayer.New(apiKey,
-    sendlayer.WithTimeout(60*time.Second),
-    sendlayer.WithBaseURL("https://custom-api.sendlayer.com/api/v1"),
-)
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes and add tests
-4. Run tests: `go test ./...`
-5. Commit your changes: `git commit -am 'Add feature'`
-6. Push to the branch: `git push origin feature-name`
-7. Submit a pull request
-
-## Support
-
-- [SendLayer Documentation](https://developers.sendlayer.com)
-- [GitHub Issues](https://github.com/sendlayer/sendlayer-go/issues)
-- Email: support@sendlayer.com
+To learn more about using the SendLayer SDK, be sure to check our [Developer Documentation](https://developers.sendlayer.com/sdks/go).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+MIT License - see [LICENSE](./LICENSE) file for details 

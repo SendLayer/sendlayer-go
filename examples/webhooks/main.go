@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sendlayer/sendlayer-go/sendlayer"
+	"github.com/sendlayer/sendlayer-go"
 )
 
 func main() {
@@ -17,12 +17,12 @@ func main() {
 	sl := sendlayer.New(apiKey)
 
 	// Create a new webhook
-	webhook, err := sl.Webhooks.Create("https://example.com/webhook", "click")
-	if err != nil {
-		fmt.Printf("Error creating webhook: %v\n", err)
-		return
-	}
-	fmt.Printf("✅ Webhook created!: %v\n", webhook)
+	// webhook, err := sl.Webhooks.Create("https://example.com/webhook", "click")
+	// if err != nil {
+	// 	fmt.Printf("Error creating webhook: %v\n", err)
+	// 	return
+	// }
+	// fmt.Printf("✅ Webhook created!: %+v\n", webhook)
 
 	// List all webhooks
 	webhookList, err := sl.Webhooks.Get()
@@ -31,9 +31,9 @@ func main() {
 		return
 	}
 	fmt.Printf("📋 Found %d webhooks:\n", len(webhookList))
-	fmt.Printf("Webhook: %v\n", webhookList)
+	fmt.Printf("Webhook: %+v\n", webhookList)
 
-	webhookID := 26393
+	webhookID := 24633
 
 	// Delete the webhook we just created
 	err = sl.Webhooks.Delete(webhookID)

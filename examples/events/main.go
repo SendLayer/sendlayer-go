@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/sendlayer/sendlayer-go/sendlayer"
+	"github.com/sendlayer/sendlayer-go"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 
 	startDate := time.Now().AddDate(0, 0, -7)
 	endDate := time.Now()
-	event := "accepted"
+	event := "delivered"
 	retrieveCount := 10
 	resp, err := sl.Events.Get(&startDate, &endDate, event, "", nil, &retrieveCount)
 	if err != nil {
@@ -33,5 +33,5 @@ func main() {
 		fmt.Println("No events found in the specified time range.")
 		return
 	}
-	fmt.Printf("Events: %v\n", resp)
+	fmt.Printf("Events: %+v\n", resp)
 }
