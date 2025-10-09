@@ -1,3 +1,3 @@
 module github.com/sendlayer/sendlayer-go
 
-go 1.20
+go 1.23

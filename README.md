@@ -66,20 +66,20 @@ Send emails using the `SendLayer` client:
 sl := sendlayer.New("your-api-key")
 
 resp, err := sl.Emails.Send(
-	from: sendlayer.EmailAddress{Email: "paulie@example.com", Name: "Paulie Paloma"},
-	to: []sendlayer.EmailAddress{
+	sendlayer.EmailAddress{Email: "paulie@example.com", Name: "Paulie Paloma"},
+	[]sendlayer.EmailAddress{
 		{Email: "recipient1@example.com", Name: "Recipient 1"},
 		{Email: "recipient2@example.com", Name: "Recipient 2"},
 	},
-	subject: "Complex Email",
-	text: "Plain text fallback",
-	html: "<p>This is a <strong>test email</strong>!</p>",
-	cc: []sendlayer.EmailAddress{{Email: "cc@example.com", Name: "CC"}},
-	bcc: []sendlayer.EmailAddress{{Email: "bcc@example.com", Name: "BCC"}},
-	replyTo: []sendlayer.EmailAddress{{Email: "reply@example.com", Name: "Reply"}},
-	attachments: []sendlayer.Attachment{{Path: "path/to/file.pdf", Type: "application/pdf"}},
-	headers: map[string]string{"X-Custom-Header": "value"},
-	tags: []string{"tag1", "tag2"},
+	"Complex Email",
+	"Plain text fallback",
+	"<p>This is a <strong>test email</strong>!</p>",
+	[]sendlayer.EmailAddress{{Email: "cc@example.com", Name: "CC"}},
+	[]sendlayer.EmailAddress{{Email: "bcc@example.com", Name: "BCC"}},
+	[]sendlayer.EmailAddress{{Email: "reply@example.com", Name: "Reply"}},
+	[]sendlayer.Attachment{{Path: "path/to/file.pdf", Type: "application/pdf"}},
+	map[string]string{"X-Custom-Header": "value"},
+	[]string{"tag1", "tag2"},
 )
 if err != nil {
 	log.Fatal(err)
