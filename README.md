@@ -10,7 +10,7 @@
 
 The official Go SDK for interacting with the SendLayer API, providing a simple and intuitive interface for sending emails, managing webhooks, and retrieving email events.
 
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![Publish Go SDK](https://github.com/SendLayer/sendlayer-go/actions/workflows/publish.yml/badge.svg)](https://github.com/SendLayer/sendlayer-go/actions/workflows/publish.yml)
 
 ## Installation
 

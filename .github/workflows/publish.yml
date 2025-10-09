@@ -71,6 +71,6 @@ jobs:
 
       - name: Notify Go Registry
         run: |
-          GOPROXY=proxy.golang.org go list -m github.com/${{ github.repository_owner }}/${{ github.repository_name }}@v${{ steps.get_version.outputs.version }}
+          GOPROXY=proxy.golang.org go list -m github.com/${{ github.repository }}@v${{ steps.get_version.outputs.version }}
 
 
