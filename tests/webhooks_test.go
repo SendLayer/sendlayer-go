@@ -10,11 +10,11 @@ import (
 func TestWebhookValidation(t *testing.T) {
 	client := sendlayer.NewClient("test-key")
 	webhooks := sendlayer.NewWebhooksService(client)
-	_, err := webhooks.Create("invalid-url", "delivery")
+	_, err := webhooks.Create(&sendlayer.WebhookCreateRequest{WebhookURL: "invalid-url", Event: "delivery"})
 	if err == nil {
 		t.Error("Expected validation error for invalid URL")
 	}
-	_, err = webhooks.Create("https://valid.com", "invalid-event")
+	_, err = webhooks.Create(&sendlayer.WebhookCreateRequest{WebhookURL: "https://valid.com", Event: "invalid-event"})
 	if err == nil {
 		t.Error("Expected validation error for invalid event")
 	}
@@ -27,7 +27,7 @@ func TestWebhookIntegration(t *testing.T) {
 		t.Skip("SENDLAYER_API_KEY not set")
 	}
 	sl := sendlayer.New(apiKey)
-	wh, err := sl.Webhooks.Create("https://yourdomain.com/webhook", "delivery")
+	wh, err := sl.Webhooks.Create(&sendlayer.WebhookCreateRequest{WebhookURL: "https://yourdomain.com/webhook", Event: "delivery"})
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
