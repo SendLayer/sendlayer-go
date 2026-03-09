@@ -136,3 +136,14 @@ type EventsResponse struct {
 	TotalRecords int     `json:"TotalRecords"`
 	Events       []Event `json:"Events"`
 }
+
+// GetEventsRequest is the user-facing request for querying events.
+// All fields are optional; omitting the request (nil) returns events with default server behavior.
+type GetEventsRequest struct {
+	StartDate     *time.Time
+	EndDate       *time.Time
+	Event         string
+	MessageID     string
+	StartFrom     *int
+	RetrieveCount *int
+}

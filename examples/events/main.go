@@ -17,11 +17,25 @@ func main() {
 
 	sl := sendlayer.New(apiKey)
 
+	// Get all events
+	allEvents, err := sl.Events.Get(nil)
+	if err != nil {
+		fmt.Printf("Error getting events: %v\n", err)
+		return
+	}
+	fmt.Printf("📊 Found %d events:\n", allEvents.TotalRecords)
+	fmt.Printf("Events: %+v\n", allEvents)
+
 	startDate := time.Now().AddDate(0, 0, -7)
 	endDate := time.Now()
 	event := "delivered"
 	retrieveCount := 10
-	resp, err := sl.Events.Get(&startDate, &endDate, event, "", nil, &retrieveCount)
+	resp, err := sl.Events.Get(&sendlayer.GetEventsRequest{
+		StartDate:     &startDate,
+		EndDate:       &endDate,
+		Event:         event,
+		RetrieveCount: &retrieveCount,
+	})
 	if err != nil {
 		fmt.Printf("Error getting events: %v\n", err)
 		return
