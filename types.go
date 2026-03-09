@@ -31,8 +31,27 @@ type EmailAddress struct {
 }
 
 type Attachment struct {
-	Path string `json:"path"`
-	Type string `json:"type"`
+	Path     string `json:"path"`
+	Type     string `json:"type"`
+	Filename string `json:"filename,omitempty"` // optional; if empty, derived from Path
+}
+
+// SendEmailRequest is the user-facing request for sending email.
+// From and To accept either a string (email) or EmailAddress (email + optional name).
+// Cc, Bcc, and ReplyTo accept the same types and can be single or slice ([]string or []EmailAddress).
+// At least one of Text or Html must be set.
+type SendEmailRequest struct {
+	From        interface{}   // string or EmailAddress
+	To          interface{}   // string, EmailAddress, []string, or []EmailAddress
+	Subject     string
+	Text        string        // plain text body (optional if Html is set)
+	Html        string        // HTML body (optional if Text is set)
+	Cc          interface{}   // optional: string, EmailAddress, []string, or []EmailAddress
+	Bcc         interface{}   // optional: same as Cc
+	ReplyTo     interface{}   // optional: same as Cc
+	Attachments []Attachment  // optional
+	Headers     map[string]string
+	Tags        []string
 }
 
 type EmailRequest struct {
