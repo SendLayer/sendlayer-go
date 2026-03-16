@@ -91,65 +91,58 @@ func (e *EmailsService) normalizeRecipient(val interface{}) ([]EmailAddress, err
 	return out, nil
 }
 
-func (e *EmailsService) Send(
-	from interface{},
-	to interface{},
-	subject string,
-	text string,
-	html string,
-	cc interface{},
-	bcc interface{},
-	replyTo interface{},
-	attachments []Attachment,
-	headers map[string]string,
-	tags []string,
-) (*EmailResponse, error) {
-	if text == "" && html == "" {
-		return nil, &SendLayerValidationError{SendLayerError{"Either 'text' or 'html' content must be provided."}}
+// Send sends an email using the given request. From and To accept string or EmailAddress
+// (or []string / []EmailAddress for To, Cc, Bcc, ReplyTo). At least one of Text or Html must be set.
+func (e *EmailsService) Send(req *SendEmailRequest) (*EmailResponse, error) {
+	if req == nil {
+		return nil, &SendLayerValidationError{SendLayerError{"SendEmailRequest is required"}}
 	}
-	fromDetails, err := e.normalizeRecipient(from)
+	if req.Text == "" && req.Html == "" {
+		return nil, &SendLayerValidationError{SendLayerError{"Either 'Text' or 'Html' must be provided"}}
+	}
+	fromDetails, err := e.normalizeRecipient(req.From)
 	if err != nil || len(fromDetails) == 0 {
 		return nil, err
 	}
-	toList, err := e.normalizeRecipient(to)
+	toList, err := e.normalizeRecipient(req.To)
 	if err != nil || len(toList) == 0 {
 		return nil, err
 	}
 	payload := EmailRequest{
 		From:        fromDetails[0],
 		To:          toList,
-		Subject:     subject,
+		Subject:     req.Subject,
 		ContentType: "Text",
 	}
-	if html != "" {
+	if req.Html != "" {
 		payload.ContentType = "HTML"
-		payload.HTMLContent = html
+		payload.HTMLContent = req.Html
 	} else {
-		payload.PlainContent = text
+		payload.PlainContent = req.Text
 	}
-	if cc != nil {
-		ccList, err := e.normalizeRecipient(cc)
+	if req.Cc != nil {
+		ccList, err := e.normalizeRecipient(req.Cc)
 		if err != nil {
 			return nil, err
 		}
 		payload.CC = ccList
 	}
-	if bcc != nil {
-		bccList, err := e.normalizeRecipient(bcc)
+	if req.Bcc != nil {
+		bccList, err := e.normalizeRecipient(req.Bcc)
 		if err != nil {
 			return nil, err
 		}
 		payload.BCC = bccList
 	}
-	if replyTo != nil {
-		replyToList, err := e.normalizeRecipient(replyTo)
+	if req.ReplyTo != nil {
+		replyToList, err := e.normalizeRecipient(req.ReplyTo)
 		if err != nil {
 			return nil, err
 		}
 		payload.ReplyTo = replyToList
 	}
-	if len(attachments) > 0 {
-		for i, att := range attachments {
+	if len(req.Attachments) > 0 {
+		for i, att := range req.Attachments {
 			if att.Path == "" || att.Type == "" {
 				return nil, &SendLayerValidationError{SendLayerError{"Attachment path and type are required"}}
 			}
@@ -157,7 +150,10 @@ func (e *EmailsService) Send(
 			if err != nil {
 				return nil, err
 			}
-			filename := filepath.Base(att.Path)
+			filename := att.Filename
+			if filename == "" {
+				filename = filepath.Base(att.Path)
+			}
 			payload.Attachments = append(payload.Attachments, struct {
 				Content     string `json:"Content"`
 				Type        string `json:"Type"`
@@ -173,11 +169,11 @@ func (e *EmailsService) Send(
 			})
 		}
 	}
-	if headers != nil {
-		payload.Headers = headers
+	if req.Headers != nil {
+		payload.Headers = req.Headers
 	}
-	if tags != nil {
-		payload.Tags = tags
+	if req.Tags != nil {
+		payload.Tags = req.Tags
 	}
 	respBody, _, err := e.client.doRequest("POST", "email", payload, nil)
 	if err != nil {

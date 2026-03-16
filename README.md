@@ -34,15 +34,12 @@ import (
 func main() {
 	sl := sendlayer.New(os.Getenv("SENDLAYER_API_KEY"))
 
-	resp, err := sl.Emails.Send(
-		"paulie@example.com",
-		"recipient@example.com",
-		"Test Email",
-		"This is a test email",
-		"",
-		nil, nil, nil,
-		nil, nil, nil,
-	)
+	resp, err := sl.Emails.Send(&sendlayer.SendEmailRequest{
+		From:    "paulie@example.com",
+		To:      "recipient@example.com",
+		Subject: "Test Email",
+		Text:    "This is a test email",
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,27 +57,27 @@ func main() {
 
 ## Email
 
-Send emails using the `SendLayer` client:
+Send emails using the `SendLayer` client. `From` and `To` accept a string (email) or `EmailAddress` (email + optional name). `Cc`, `Bcc`, and `ReplyTo` accept the same types and can be a single value or a slice.
 
 ```go
 sl := sendlayer.New("your-api-key")
 
-resp, err := sl.Emails.Send(
-	sendlayer.EmailAddress{Email: "paulie@example.com", Name: "Paulie Paloma"},
-	[]sendlayer.EmailAddress{
+resp, err := sl.Emails.Send(&sendlayer.SendEmailRequest{
+	From:    sendlayer.EmailAddress{Email: "paulie@example.com", Name: "Paulie Paloma"},
+	To:      []sendlayer.EmailAddress{
 		{Email: "recipient1@example.com", Name: "Recipient 1"},
 		{Email: "recipient2@example.com", Name: "Recipient 2"},
 	},
-	"Complex Email",
-	"Plain text fallback",
-	"<p>This is a <strong>test email</strong>!</p>",
-	[]sendlayer.EmailAddress{{Email: "cc@example.com", Name: "CC"}},
-	[]sendlayer.EmailAddress{{Email: "bcc@example.com", Name: "BCC"}},
-	[]sendlayer.EmailAddress{{Email: "reply@example.com", Name: "Reply"}},
-	[]sendlayer.Attachment{{Path: "path/to/file.pdf", Type: "application/pdf"}},
-	map[string]string{"X-Custom-Header": "value"},
-	[]string{"tag1", "tag2"},
-)
+	Subject: "Complex Email",
+	Text:    "Plain text fallback",
+	Html:    "<p>This is a <strong>test email</strong>!</p>",
+	Cc:      []sendlayer.EmailAddress{{Email: "cc@example.com", Name: "CC"}},
+	Bcc:     []sendlayer.EmailAddress{{Email: "bcc@example.com", Name: "BCC"}},
+	ReplyTo: sendlayer.EmailAddress{Email: "reply@example.com", Name: "Reply"},
+	Attachments: []sendlayer.Attachment{{Path: "path/to/file.pdf", Type: "application/pdf"}},
+	Headers: map[string]string{"X-Custom-Header": "value"},
+	Tags:    []string{"tag1", "tag2"},
+})
 if err != nil {
 	log.Fatal(err)
 }
@@ -92,7 +89,7 @@ if err != nil {
 sl := sendlayer.New("your-api-key")
 
 // Get all events
-all, err := sl.Events.Get(nil, nil, "", "", nil, nil)
+all, err := sl.Events.Get(nil)
 if err != nil {
 	log.Fatal(err)
 }
@@ -101,7 +98,7 @@ if err != nil {
 end := time.Now()
 start := end.Add(-24 * time.Hour)
 ev := "opened"
-filtered, err := sl.Events.Get(&start, &end, ev, "", nil, nil)
+filtered, err := sl.Events.Get(&sendlayer.GetEventsRequest{StartDate: &start, EndDate: &end, Event: ev})
 if err != nil {
 	log.Fatal(err)
 }
@@ -116,7 +113,7 @@ fmt.Println("Filtered events count:", filtered.TotalRecords)
 sl := sendlayer.New("your-api-key")
 
 // Create a webhook
-webhook, err := sl.Webhooks.Create("https://your-domain.com/webhook", "open")
+webhook, err := sl.Webhooks.Create(&sendlayer.WebhookCreateRequest{WebhookURL: "https://your-domain.com/webhook", Event: "open"})
 if err != nil {
 	log.Fatal(err)
 }
@@ -140,7 +137,7 @@ if err := sl.Webhooks.Delete(123); err != nil {
 The SDK returns typed errors to help you handle different scenarios:
 
 ```go
-resp, err := sl.Emails.Send(/* ... */)
+resp, err := sl.Emails.Send(&sendlayer.SendEmailRequest{From: "you@example.com", To: "them@example.com", Subject: "Hi", Text: "Hello"})
 if err != nil {
 	var apiErr *sendlayer.SendLayerAPIError
 	var valErr *sendlayer.SendLayerValidationError

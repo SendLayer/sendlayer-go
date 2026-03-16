@@ -17,12 +17,15 @@ func main() {
 	sl := sendlayer.New(apiKey)
 
 	// Create a new webhook
-	// webhook, err := sl.Webhooks.Create("https://example.com/webhook", "click")
-	// if err != nil {
-	// 	fmt.Printf("Error creating webhook: %v\n", err)
-	// 	return
-	// }
-	// fmt.Printf("✅ Webhook created!: %+v\n", webhook)
+	webhook, err := sl.Webhooks.Create(&sendlayer.WebhookCreateRequest{
+		WebhookURL: "https://example.com/webhook", 
+		Event: "click",
+	})
+	if err != nil {
+		fmt.Printf("Error creating webhook: %v\n", err)
+		return
+	}
+	fmt.Printf("✅ Webhook created!: %+v\n", webhook)
 
 	// List all webhooks
 	webhookList, err := sl.Webhooks.Get()
@@ -33,7 +36,7 @@ func main() {
 	fmt.Printf("📋 Found %d webhooks:\n", len(webhookList))
 	fmt.Printf("Webhook: %+v\n", webhookList)
 
-	webhookID := 24633
+	webhookID := 33768
 
 	// Delete the webhook we just created
 	err = sl.Webhooks.Delete(webhookID)

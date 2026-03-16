@@ -13,11 +13,11 @@ func TestEventsValidation(t *testing.T) {
 	events := sendlayer.NewEventsService(client)
 	invalidStart := time.Now()
 	invalidEnd := time.Now().AddDate(0, 0, -1)
-	_, err := events.Get(&invalidStart, &invalidEnd, "", "", nil, nil)
+	_, err := events.Get(&sendlayer.GetEventsRequest{StartDate: &invalidStart, EndDate: &invalidEnd})
 	if err == nil {
 		t.Error("Expected validation error for invalid date range")
 	}
-	_, err = events.Get(nil, nil, "invalid-event", "", nil, nil)
+	_, err = events.Get(&sendlayer.GetEventsRequest{Event: "invalid-event"})
 	if err == nil {
 		t.Error("Expected validation error for invalid event")
 	}
@@ -30,7 +30,7 @@ func TestEventsIntegration(t *testing.T) {
 		t.Skip("SENDLAYER_API_KEY not set")
 	}
 	sl := sendlayer.New(apiKey)
-	resp, err := sl.Events.Get(nil, nil, "delivered", "", nil, nil)
+	resp, err := sl.Events.Get(&sendlayer.GetEventsRequest{Event: "delivered"})
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}

@@ -10,7 +10,12 @@ import (
 func TestSendEmailValidation(t *testing.T) {
 	client := sendlayer.NewClient("test-key")
 	emails := sendlayer.NewEmailsService(client)
-	_, err := emails.Send("invalid-email", []string{"recipient@example.com"}, "Subject", "Text", "", nil, nil, nil, nil, nil, nil)
+	_, err := emails.Send(&sendlayer.SendEmailRequest{
+		From:    "invalid-email",
+		To:      []string{"recipient@example.com"},
+		Subject: "Subject",
+		Text:    "Text",
+	})
 	if err == nil {
 		t.Error("Expected validation error for invalid sender email")
 	}
@@ -19,9 +24,22 @@ func TestSendEmailValidation(t *testing.T) {
 func TestSendEmailNoContent(t *testing.T) {
 	client := sendlayer.NewClient("test-key")
 	emails := sendlayer.NewEmailsService(client)
-	_, err := emails.Send("sender@example.com", []string{"recipient@example.com"}, "Subject", "", "", nil, nil, nil, nil, nil, nil)
+	_, err := emails.Send(&sendlayer.SendEmailRequest{
+		From:    "sender@example.com",
+		To:      []string{"recipient@example.com"},
+		Subject: "Subject",
+	})
 	if err == nil {
 		t.Error("Expected validation error for missing content")
+	}
+}
+
+func TestSendEmailNilRequest(t *testing.T) {
+	client := sendlayer.NewClient("test-key")
+	emails := sendlayer.NewEmailsService(client)
+	_, err := emails.Send(nil)
+	if err == nil {
+		t.Error("Expected validation error for nil request")
 	}
 }
 
@@ -32,7 +50,12 @@ func TestSendEmailIntegration(t *testing.T) {
 		t.Skip("SENDLAYER_API_KEY not set")
 	}
 	sl := sendlayer.New(apiKey)
-	resp, err := sl.Emails.Send("sender@example.com", []string{"recipient@example.com"}, "Test", "Hello from Go SDK", "", nil, nil, nil, nil, nil, nil)
+	resp, err := sl.Emails.Send(&sendlayer.SendEmailRequest{
+		From:    "sender@example.com",
+		To:      []string{"recipient@example.com"},
+		Subject: "Test",
+		Text:    "Hello from Go SDK",
+	})
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
