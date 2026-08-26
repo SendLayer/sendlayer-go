@@ -1,7 +1,6 @@
 package sendlayer
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 )
@@ -21,23 +20,23 @@ func (w *WebhooksService) validateURL(u string) bool {
 
 func (w *WebhooksService) Create(req *WebhookCreateRequest) (*WebhookCreateResponse, error) {
 	if req == nil {
-		return nil, &SendLayerValidationError{SendLayerError{"WebhookCreateRequest is required"}}
+		return nil, &SendLayerValidationError{SendLayerError{Message: "WebhookCreateRequest is required"}}
 	}
 	if !w.validateURL(req.WebhookURL) {
-		return nil, &SendLayerValidationError{SendLayerError{fmt.Sprintf("Invalid webhook URL: %s", req.WebhookURL)}}
+		return nil, &SendLayerValidationError{SendLayerError{Message: fmt.Sprintf("Invalid webhook URL: %s", req.WebhookURL)}}
 	}
 	eventOptions := map[string]bool{
 		"bounce": true, "click": true, "open": true, "unsubscribe": true, "complaint": true, "delivery": true,
 	}
 	if !eventOptions[req.Event] {
-		return nil, &SendLayerValidationError{SendLayerError{fmt.Sprintf("Invalid event: %s", req.Event)}}
+		return nil, &SendLayerValidationError{SendLayerError{Message: fmt.Sprintf("Invalid event: %s", req.Event)}}
 	}
 	respBody, _, err := w.client.doRequest("POST", "webhooks", req, nil)
 	if err != nil {
 		return nil, err
 	}
 	var resp WebhookCreateResponse
-	if err := json.Unmarshal(respBody, &resp); err != nil {
+	if err := decodeResponse(respBody, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -49,7 +48,7 @@ func (w *WebhooksService) Get() ([]Webhook, error) {
 		return nil, err
 	}
 	var resp WebhookListResponse
-	if err := json.Unmarshal(respBody, &resp); err != nil {
+	if err := decodeResponse(respBody, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Webhooks, nil
@@ -57,7 +56,7 @@ func (w *WebhooksService) Get() ([]Webhook, error) {
 
 func (w *WebhooksService) Delete(webhookID int) error {
 	if webhookID <= 0 {
-		return &SendLayerValidationError{SendLayerError{"WebhookID must be greater than 0"}}
+		return &SendLayerValidationError{SendLayerError{Message: "WebhookID must be greater than 0"}}
 	}
 	endpoint := fmt.Sprintf("webhooks/%d", webhookID)
 	_, _, err := w.client.doRequest("DELETE", endpoint, nil, nil)

@@ -18,8 +18,8 @@ func main() {
 
 	// Create a new webhook
 	webhook, err := sl.Webhooks.Create(&sendlayer.WebhookCreateRequest{
-		WebhookURL: "https://example.com/webhook", 
-		Event: "click",
+		WebhookURL: "https://example.com/webhook",
+		Event:      "click",
 	})
 	if err != nil {
 		fmt.Printf("Error creating webhook: %v\n", err)

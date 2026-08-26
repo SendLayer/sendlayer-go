@@ -1,7 +1,6 @@
 package sendlayer
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 )
@@ -25,7 +24,7 @@ func (e *EventsService) Get(req *GetEventsRequest) (*EventsResponse, error) {
 	params := map[string]string{}
 
 	if req.StartDate != nil && req.EndDate != nil && req.EndDate.Before(*req.StartDate) {
-		return nil, &SendLayerValidationError{SendLayerError{"End date must be after start date"}}
+		return nil, &SendLayerValidationError{SendLayerError{Message: "End date must be after start date"}}
 	}
 	if req.StartDate != nil {
 		params["StartDate"] = strconv.FormatInt(req.StartDate.Unix(), 10)
@@ -35,7 +34,7 @@ func (e *EventsService) Get(req *GetEventsRequest) (*EventsResponse, error) {
 	}
 	if req.Event != "" {
 		if !eventOptions[req.Event] {
-			return nil, &SendLayerValidationError{SendLayerError{fmt.Sprintf("Invalid event: %s", req.Event)}}
+			return nil, &SendLayerValidationError{SendLayerError{Message: fmt.Sprintf("Invalid event: %s", req.Event)}}
 		}
 		params["Event"] = req.Event
 	}
@@ -47,7 +46,7 @@ func (e *EventsService) Get(req *GetEventsRequest) (*EventsResponse, error) {
 	}
 	if req.RetrieveCount != nil {
 		if *req.RetrieveCount <= 0 {
-			return nil, &SendLayerValidationError{SendLayerError{"RetrieveCount must be greater than 0"}}
+			return nil, &SendLayerValidationError{SendLayerError{Message: "RetrieveCount must be greater than 0"}}
 		}
 		params["RetrieveCount"] = strconv.Itoa(*req.RetrieveCount)
 	}
@@ -58,8 +57,7 @@ func (e *EventsService) Get(req *GetEventsRequest) (*EventsResponse, error) {
 	}
 
 	var resp EventsResponse
-	err = json.Unmarshal(respBody, &resp)
-	if err != nil {
+	if err := decodeResponse(respBody, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil

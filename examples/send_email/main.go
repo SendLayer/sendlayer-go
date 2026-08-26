@@ -29,6 +29,22 @@ func main() {
 	}
 	fmt.Printf("✅ Email sent successfully! Message ID: %s\n", resp.MessageID)
 
+	// Example: HTML with a plain-text fallback. Supply both and both parts are
+	// sent -- ContentType is reported as HTML, and clients that cannot render
+	// HTML fall back to the plain-text part.
+	fallback, err := sl.Emails.Send(&sendlayer.SendEmailRequest{
+		From:    "paulie@example.com",
+		To:      "pattie@example.com",
+		Subject: "HTML with a plain-text fallback",
+		Html:    "<h1>Welcome!</h1><p>Welcome to our platform.</p>",
+		Text:    "Welcome! Welcome to our platform.",
+	})
+	if err != nil {
+		fmt.Printf("Error sending email: %v\n", err)
+		return
+	}
+	fmt.Printf("✅ Email sent successfully! Message ID: %s\n", fallback.MessageID)
+
 	// Example: Send an email with all options (EmailAddress for From; Cc, Bcc, ReplyTo, attachments, tags)
 	attachments := []sendlayer.Attachment{
 		{Path: "./path/to/attachment.pdf", Type: "application/pdf"},
