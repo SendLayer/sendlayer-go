@@ -2,7 +2,6 @@ package sendlayer
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/mail"
@@ -49,44 +48,44 @@ func (e *EmailsService) normalizeRecipient(val interface{}) ([]EmailAddress, err
 	switch v := val.(type) {
 	case string:
 		if !e.validateEmail(v) {
-			return nil, &SendLayerValidationError{SendLayerError{fmt.Sprintf("Invalid email: %s", v)}}
+			return nil, &SendLayerValidationError{SendLayerError{Message: fmt.Sprintf("Invalid email: %s", v)}}
 		}
 		out = append(out, EmailAddress{Email: v})
 	case EmailAddress:
 		if !e.validateEmail(v.Email) {
-			return nil, &SendLayerValidationError{SendLayerError{fmt.Sprintf("Invalid email: %s", v.Email)}}
+			return nil, &SendLayerValidationError{SendLayerError{Message: fmt.Sprintf("Invalid email: %s", v.Email)}}
 		}
 		out = append(out, v)
 	case []string:
 		for _, s := range v {
 			if !e.validateEmail(s) {
-				return nil, &SendLayerValidationError{SendLayerError{fmt.Sprintf("Invalid email: %s", s)}}
+				return nil, &SendLayerValidationError{SendLayerError{Message: fmt.Sprintf("Invalid email: %s", s)}}
 			}
 			out = append(out, EmailAddress{Email: s})
 		}
 	case []EmailAddress:
 		for _, addr := range v {
 			if !e.validateEmail(addr.Email) {
-				return nil, &SendLayerValidationError{SendLayerError{fmt.Sprintf("Invalid email: %s", addr.Email)}}
+				return nil, &SendLayerValidationError{SendLayerError{Message: fmt.Sprintf("Invalid email: %s", addr.Email)}}
 			}
 			out = append(out, addr)
 		}
 	case map[string]string:
 		email, ok := v["email"]
 		if !ok || !e.validateEmail(email) {
-			return nil, &SendLayerValidationError{SendLayerError{"Invalid email in map"}}
+			return nil, &SendLayerValidationError{SendLayerError{Message: "Invalid email in map"}}
 		}
 		out = append(out, EmailAddress{Email: email, Name: v["name"]})
 	case []map[string]string:
 		for _, m := range v {
 			email, ok := m["email"]
 			if !ok || !e.validateEmail(email) {
-				return nil, &SendLayerValidationError{SendLayerError{"Invalid email in map slice"}}
+				return nil, &SendLayerValidationError{SendLayerError{Message: "Invalid email in map slice"}}
 			}
 			out = append(out, EmailAddress{Email: email, Name: m["name"]})
 		}
 	default:
-		return nil, &SendLayerValidationError{SendLayerError{"Unsupported recipient type"}}
+		return nil, &SendLayerValidationError{SendLayerError{Message: "Unsupported recipient type"}}
 	}
 	return out, nil
 }
@@ -95,10 +94,12 @@ func (e *EmailsService) normalizeRecipient(val interface{}) ([]EmailAddress, err
 // (or []string / []EmailAddress for To, Cc, Bcc, ReplyTo). At least one of Text or Html must be set.
 func (e *EmailsService) Send(req *SendEmailRequest) (*EmailResponse, error) {
 	if req == nil {
-		return nil, &SendLayerValidationError{SendLayerError{"SendEmailRequest is required"}}
+		return nil, &SendLayerValidationError{SendLayerError{Message: "SendEmailRequest is required"}}
 	}
-	if req.Text == "" && req.Html == "" {
-		return nil, &SendLayerValidationError{SendLayerError{"Either 'Text' or 'Html' must be provided"}}
+	hasHTML := req.Html != ""
+	hasText := req.Text != ""
+	if !hasHTML && !hasText {
+		return nil, &SendLayerValidationError{SendLayerError{Message: "Either 'Text' or 'Html' must be provided"}}
 	}
 	fromDetails, err := e.normalizeRecipient(req.From)
 	if err != nil || len(fromDetails) == 0 {
@@ -114,10 +115,14 @@ func (e *EmailsService) Send(req *SendEmailRequest) (*EmailResponse, error) {
 		Subject:     req.Subject,
 		ContentType: "Text",
 	}
-	if req.Html != "" {
+	// Both parts are sent when both are supplied. The previous if/else could
+	// only ever emit one of them, which silently dropped the plain-text part.
+	// HTML wins for the declared content type whenever an HTML body is present.
+	if hasHTML {
 		payload.ContentType = "HTML"
 		payload.HTMLContent = req.Html
-	} else {
+	}
+	if hasText {
 		payload.PlainContent = req.Text
 	}
 	if req.Cc != nil {
@@ -144,7 +149,7 @@ func (e *EmailsService) Send(req *SendEmailRequest) (*EmailResponse, error) {
 	if len(req.Attachments) > 0 {
 		for i, att := range req.Attachments {
 			if att.Path == "" || att.Type == "" {
-				return nil, &SendLayerValidationError{SendLayerError{"Attachment path and type are required"}}
+				return nil, &SendLayerValidationError{SendLayerError{Message: "Attachment path and type are required"}}
 			}
 			content, err := e.readAttachment(att.Path)
 			if err != nil {
@@ -180,8 +185,7 @@ func (e *EmailsService) Send(req *SendEmailRequest) (*EmailResponse, error) {
 		return nil, err
 	}
 	var resp EmailResponse
-	err = json.Unmarshal(respBody, &resp)
-	if err != nil {
+	if err := decodeResponse(respBody, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil

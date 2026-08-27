@@ -41,15 +41,15 @@ type Attachment struct {
 // Cc, Bcc, and ReplyTo accept the same types and can be single or slice ([]string or []EmailAddress).
 // At least one of Text or Html must be set.
 type SendEmailRequest struct {
-	From        interface{}   // string or EmailAddress
-	To          interface{}   // string, EmailAddress, []string, or []EmailAddress
+	From        interface{} // string or EmailAddress
+	To          interface{} // string, EmailAddress, []string, or []EmailAddress
 	Subject     string
-	Text        string        // plain text body (optional if Html is set)
-	Html        string        // HTML body (optional if Text is set)
-	Cc          interface{}   // optional: string, EmailAddress, []string, or []EmailAddress
-	Bcc         interface{}   // optional: same as Cc
-	ReplyTo     interface{}   // optional: same as Cc
-	Attachments []Attachment  // optional
+	Text        string       // plain text body (optional if Html is set)
+	Html        string       // HTML body (optional if Text is set)
+	Cc          interface{}  // optional: string, EmailAddress, []string, or []EmailAddress
+	Bcc         interface{}  // optional: same as Cc
+	ReplyTo     interface{}  // optional: same as Cc
+	Attachments []Attachment // optional
 	Headers     map[string]string
 	Tags        []string
 }
@@ -80,7 +80,7 @@ type EmailResponse struct {
 }
 
 type Webhook struct {
-	WebhookID  string    `json:"WebhookID"`
+	WebhookID  string `json:"WebhookID"`
 	WebhookURL string `json:"WebhookURL"`
 	Event      string `json:"Event"`
 	Status     string `json:"Status"`
